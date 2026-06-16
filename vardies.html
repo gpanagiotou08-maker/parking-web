@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Βάρδιες & Events</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap');
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--bg:#0f1117;--surface:#181c27;--surface2:#1f2436;--border:#2a3050;--accent:#4f8ef7;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--purple:#a78bfa;--text:#e8eaf0;--muted:#6b7280;}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:16px 13px 40px;}
+
+  header{text-align:center;margin-bottom:20px;}
+  header h1{font-family:'Space Grotesk',sans-serif;font-size:1.3rem;font-weight:700;margin-bottom:3px;}
+  header p{font-size:.78rem;color:var(--muted);}
+
+  /* MAIN NAV */
+  .main-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:18px;}
+  .mtab{padding:11px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;text-align:center;transition:all .18s;}
+  .mtab.active-v{border-color:var(--accent);color:var(--accent);background:rgba(79,142,247,.1);}
+  .mtab.active-e{border-color:var(--purple);color:var(--purple);background:rgba(167,139,250,.1);}
+
+  /* PAGE */
+  .page{display:none;}
+  .page.active{display:block;}
+
+  /* CARD */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:17px;margin-bottom:13px;}
+  .card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .card-hdr h2{font-family:'Space Grotesk',sans-serif;font-size:.9rem;font-weight:700;display:flex;align-items:center;gap:7px;}
+
+  /* FORM */
+  .fg{margin-bottom:11px;}
+  .fg label{display:block;font-size:.67rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em;}
+  input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 11px;font-size:.87rem;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s;}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+  select option{background:var(--surface2);}
+  textarea{resize:vertical;min-height:50px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+
+  /* SHOP TAB */
+  .shop-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px;}
+  .stab{padding:10px;border-radius:9px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .18s;text-align:center;}
+  .stab.sr{border-color:var(--accent);color:var(--accent);background:rgba(79,142,247,.1);}
+  .stab.se{border-color:var(--purple);color:var(--purple);background:rgba(167,139,250,.1);}
+
+  /* TIME PREVIEW */
+  .time-preview{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:9px 13px;margin-top:7px;display:none;text-align:center;}
+  .tp-hrs{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.2rem;color:var(--green);}
+  .tp-pay{font-size:.76rem;color:var(--muted);margin-top:1px;}
+
+  /* BUTTONS */
+  .btn{width:100%;padding:11px;border-radius:9px;border:none;font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .18s;}
+  .btn-g{background:var(--green);color:#fff;}
+  .btn-r{background:var(--red);color:#fff;}
+  .btn-b{background:var(--accent);color:#fff;}
+  .btn-p{background:var(--purple);color:#fff;}
+  .btn-sm{width:auto;padding:7px 13px;font-size:.78rem;border-radius:7px;}
+  .btn:hover{opacity:.88;} .btn:active{transform:scale(.98);}
+
+  /* STAFF CARDS */
+  .sp-grid{display:flex;flex-direction:column;gap:5px;}
+  .sp-card{display:flex;align-items:center;gap:9px;background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:8px 11px;cursor:pointer;transition:all .15s;}
+  .sp-card:hover{border-color:var(--accent);}
+  .sp-card.picked{border-color:var(--green);background:rgba(34,197,94,.07);}
+  .sp-card.picked-evt{border-color:var(--purple);background:rgba(167,139,250,.07);}
+  .sp-av{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;font-family:'Space Grotesk',sans-serif;flex-shrink:0;}
+  .sp-ch{margin-left:auto;font-size:.88rem;opacity:0;}
+  .sp-card.picked .sp-ch,.sp-card.picked-evt .sp-ch{opacity:1;color:var(--green);}
+  .sp-cnt{font-size:.65rem;color:var(--muted);margin-left:4px;}
+
+  /* SHIFT LIST */
+  .slist{display:flex;flex-direction:column;gap:6px;}
+  .sitem{background:var(--surface2);border-radius:9px;padding:10px 12px;border:1px solid var(--border);}
+  .sitem-row{display:flex;align-items:center;gap:9px;}
+  .sdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .sinf{flex:1;}
+  .sname{font-size:.83rem;font-weight:600;}
+  .smeta{font-size:.67rem;color:var(--muted);margin-top:2px;}
+  .shrs{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.88rem;color:var(--yellow);}
+  .spay{font-size:.64rem;color:var(--green);}
+  .sdel{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.76rem;padding:3px 4px;}
+  .sdel:hover{color:var(--red);}
+
+  /* EVENT CARDS */
+  .evt-card{background:var(--surface);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:12px;}
+  .evt-hdr{background:linear-gradient(135deg,rgba(167,139,250,.15),rgba(79,142,247,.1));padding:14px 16px;border-bottom:1px solid var(--border);}
+  .evt-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;margin-bottom:3px;}
+  .evt-meta{font-size:.72rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;}
+  .evt-meta span{display:flex;align-items:center;gap:4px;}
+  .evt-body{padding:13px 16px;}
+  .evt-staff-list{display:flex;flex-direction:column;gap:4px;}
+  .evs-row{display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:7px;padding:7px 10px;border:1px solid var(--border);font-size:.78rem;}
+  .evs-av{width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;font-family:'Space Grotesk',sans-serif;flex-shrink:0;}
+  .evs-pay{margin-left:auto;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.8rem;color:var(--purple);}
+  .evt-total{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+  .evt-total-lbl{font-size:.72rem;color:var(--muted);}
+  .evt-total-val{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.05rem;color:var(--purple);}
+
+  /* STAFF MGMT */
+  .smgmt-item{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 11px;margin-bottom:5px;}
+
+  .empty{text-align:center;padding:20px;color:var(--muted);font-size:.78rem;}
+  .ei{font-size:1.5rem;margin-bottom:6px;}
+
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:9px 20px;border-radius:9px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.84rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+  .badge-cnt{display:inline-flex;align-items:center;justify-content:center;background:var(--purple);color:#fff;border-radius:99px;width:18px;height:18px;font-size:.65rem;font-weight:700;margin-left:4px;}
+
+  /* ── CALENDAR ─────────────────────────────────────────── */
+  .cal-nav{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .cal-nav button{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:7px 14px;cursor:pointer;font-size:.85rem;transition:border-color .2s;}
+  .cal-nav button:hover{border-color:var(--accent);}
+  .cal-nav .cal-lbl{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.05rem;flex:1;text-align:center;}
+  .cal-grid{display:grid !important;grid-template-columns:repeat(7,1fr) !important;gap:3px;margin-bottom:16px;width:100%;}
+  .cal-dow{text-align:center;font-size:.62rem;color:var(--muted);padding:5px 0;font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+  .cal-day{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 4px;min-height:48px;cursor:pointer;transition:all .16s;position:relative;overflow:hidden;}
+  .cal-day:hover{border-color:var(--accent);}
+  .cal-day.today{border-color:var(--accent);background:rgba(79,142,247,.08);}
+  .cal-day.has-shifts{border-color:rgba(34,197,94,.4);}
+  .cal-day.has-events{border-color:rgba(167,139,250,.4);}
+  .cal-day.has-both{border-color:var(--yellow);}
+  .cal-day.selected{border-color:var(--accent);background:rgba(79,142,247,.14);}
+  .cal-day.other-month .cal-dn{opacity:.3;}
+  .cal-dn{font-size:.8rem;font-weight:600;margin-bottom:3px;}
+  .cal-dots{display:flex;gap:2px;flex-wrap:wrap;margin-top:2px;}
+  .cal-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .cal-count{font-size:.58rem;color:var(--muted);margin-top:1px;}
+  /* Day Detail Panel */
+  .day-detail{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:16px;margin-top:0;}
+  .day-detail-hdr{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.95rem;margin-bottom:13px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .day-entry{display:flex;align-items:center;gap:9px;background:var(--surface2);border-radius:8px;padding:9px 12px;border:1px solid var(--border);margin-bottom:6px;}
+  .day-entry .de-av{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;font-family:'Space Grotesk',sans-serif;flex-shrink:0;}
+  .day-entry .de-info{flex:1;}
+  .day-entry .de-name{font-size:.83rem;font-weight:600;}
+  .day-entry .de-meta{font-size:.67rem;color:var(--muted);margin-top:2px;}
+  .day-entry .de-hrs{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.88rem;color:var(--yellow);white-space:nowrap;text-align:right;}
+  .day-entry .de-pay{font-size:.64rem;color:var(--green);white-space:nowrap;}
+  .day-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+  .ds-card{background:var(--surface2);border-radius:8px;padding:9px 11px;text-align:center;}
+  .ds-val{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;}
+  .ds-lbl{font-size:.62rem;color:var(--muted);margin-top:2px;}
+
+</style>
+
+
+
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script>
+    var firebaseConfig = {
+      apiKey: "AIzaSyBMNW-4Wvc-aPmTylrbSyN92WsiEkpbj5M",
+      authDomain: "parking-app-c8fa8.firebaseapp.com",
+      projectId: "parking-app-c8fa8",
+      storageBucket: "parking-app-c8fa8.firebasestorage.app",
+      messagingSenderId: "399132378403",
+      appId: "1:399132378403:web:947ef0e51d3e44b7b1f896"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+
+    var _origSet = localStorage.setItem.bind(localStorage);
+    var SYNC_KEYS = ['pk5_staff','pk5_tx','pk5_sal','vk_shifts','vk_events'];
+    var _syncing = false;
+
+    function fbSave(key, value) {
+      db.collection('parking_data').doc(key).set({ data: value, updated: Date.now() })
+        .then(function(){ showSyncDot(true); })
+        .catch(function(e){ console.warn('FB save error:', e); });
+    }
+
+    localStorage.setItem = function(key, value) {
+      _origSet(key, value);
+      if (!_syncing && SYNC_KEYS.indexOf(key) >= 0) { fbSave(key, value); }
+    };
+
+    function syncFromFirebase(cb) {
+      _syncing = true;
+      db.collection('parking_data').get().then(function(snap) {
+        snap.forEach(function(doc) {
+          if (SYNC_KEYS.indexOf(doc.id) >= 0 && doc.data().data) {
+            _origSet(doc.id, doc.data().data);
+          }
+        });
+        _syncing = false;
+        if (cb) cb();
+      }).catch(function(){ _syncing = false; if (cb) cb(); });
+    }
+
+    function reRenderAll() {
+      if (typeof renderAll === 'function') renderAll();
+      if (typeof renderStaffList === 'function') renderStaffList();
+      if (typeof renderStaffPicker === 'function') renderStaffPicker();
+      if (typeof renderSumTable === 'function') renderSumTable();
+      if (typeof renderShifts === 'function') renderShifts();
+      if (typeof renderVPicker === 'function') renderVPicker();
+      if (typeof renderStaffMgmt === 'function') renderStaffMgmt();
+      if (typeof renderEvents === 'function') renderEvents();
+      if (typeof vdRender === 'function') vdRender();
+    }
+
+    // Real-time listener
+    db.collection('parking_data').onSnapshot(function(snap) {
+      if (_syncing) return;
+      _syncing = true;
+      snap.forEach(function(doc) {
+        if (SYNC_KEYS.indexOf(doc.id) >= 0 && doc.data().data) {
+          _origSet(doc.id, doc.data().data);
+        }
+      });
+      _syncing = false;
+      showSyncDot(false);
+      setTimeout(reRenderAll, 200);
+    });
+
+    function showSyncDot(saving) {
+      var el = document.getElementById('fbSyncDot');
+      if (!el) return;
+      el.textContent = saving ? '☁️ Αποθήκευση...' : '✅ Συγχρονισμένο';
+      el.style.background = saving ? 'rgba(245,158,11,.15)' : 'rgba(34,197,94,.15)';
+      el.style.color = saving ? '#f59e0b' : '#22c55e';
+      el.style.display = 'block';
+      clearTimeout(window._fbTimer);
+      window._fbTimer = setTimeout(function(){ el.style.display='none'; }, 3000);
+    }
+
+    window.addEventListener('load', function() {
+      showSyncDot(false);
+      syncFromFirebase(function() { setTimeout(reRenderAll, 100); });
+    });
+  </script>
+  <div id="fbSyncDot" style="position:fixed;bottom:14px;right:14px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:5px 12px;font-size:.72rem;color:#22c55e;font-family:Inter,sans-serif;z-index:9999;display:none;pointer-events:none">✅ Συγχρονισμένο</div>
+
+</head>
+<body>
+
+<header>
+  <h1>📋 Βάρδιες &amp; Events</h1>
+  <p>Varkiza Resort &amp; Event Management</p>
+</header>
+
+<!-- MAIN NAV -->
+<div class="main-tabs" style="grid-template-columns:1fr 1fr 1fr">
+  <div class="mtab active-v" id="mt-vardies" onclick="switchMain('vardies')">🏖️ Βάρδιες</div>
+  <div class="mtab" id="mt-events"  onclick="switchMain('events')">🎉 Events</div>
+  <div class="mtab" id="mt-cal"     onclick="switchMain('cal')">📅 Ημερολόγιο</div>
+</div>
+
+<!-- ══ PAGE: ΒΑΡΔΙΕΣ ══ -->
+<div class="page active" id="pg-vardies">
+
+  <!-- ΚΑΤΑΧΩΡΗΣΗ ΒΑΡΔΙΑΣ -->
+  <div class="card">
+    <div class="card-hdr"><h2>✏️ Νέα Βάρδια</h2></div>
+
+    <div class="fg">
+      <label>Υπάλληλος</label>
+      <div class="sp-grid" id="vStaffPicker">
+        <div class="empty" style="padding:10px"><div class="ei">👤</div>Δεν υπάρχει προσωπικό ακόμα.</div>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Ημερομηνία</label>
+      <input type="date" id="vDate">
+    </div>
+
+    <div class="fg">
+      <label>Ώρες Βάρδιας</label>
+      <div class="row2">
+        <div>
+          <label style="font-size:.63rem;color:var(--muted);display:block;margin-bottom:3px">Έναρξη</label>
+          <input type="time" id="vStart" oninput="calcV()">
+        </div>
+        <div>
+          <label style="font-size:.63rem;color:var(--muted);display:block;margin-bottom:3px">Λήξη</label>
+          <input type="time" id="vEnd" oninput="calcV()">
+        </div>
+      </div>
+      <div class="time-preview" id="vPreview">
+        <div class="tp-hrs" id="vPrevHrs">0ω</div>
+        <div class="tp-pay" id="vPrevPay">≈ €0,00</div>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Σημείωση</label>
+      <input type="text" id="vNote" placeholder="Προαιρετικό...">
+    </div>
+    <button class="btn btn-g" onclick="addShift()">✓ Καταχώρηση Βάρδιας</button>
+  </div>
+
+  <!-- ΠΡΌΣΦΑΤΕΣ -->
+  <div class="card">
+    <div class="card-hdr"><h2>📅 Πρόσφατες Βάρδιες</h2></div>
+    <div class="slist" id="shiftList">
+      <div class="empty"><div class="ei">📋</div>Δεν υπάρχουν βάρδιες ακόμα.</div>
+    </div>
+  </div>
+
+  <!-- ΠΡΟΣΩΠΙΚΟ -->
+  <div class="card">
+    <div class="card-hdr"><h2>👥 Προσωπικό</h2></div>
+    <div class="row3" style="margin-bottom:11px">
+      <div>
+        <label style="font-size:.67rem;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em">Όνομα</label>
+        <input type="text" id="newName" placeholder="π.χ. Γιώργος">
+      </div>
+      <div>
+        <label style="font-size:.67rem;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em">Ρόλος</label>
+        <input type="text" id="newRole" placeholder="π.χ. Σερβιτόρος">
+      </div>
+      <div style="display:flex;align-items:flex-end">
+        <button class="btn btn-b" style="padding:9px 12px;width:auto" onclick="addStaff()">＋ Προσθήκη</button>
+      </div>
+    </div>
+    <div id="staffMgmt"></div>
+  </div>
+
+</div><!-- /pg-vardies -->
+
+<!-- ══ PAGE: EVENTS ══ -->
+<div class="page" id="pg-events">
+
+  <!-- ΝΕΟ EVENT -->
+  <div class="card">
+    <div class="card-hdr"><h2>🎉 Νέο Event</h2></div>
+
+    <div class="row2">
+      <div class="fg">
+        <label>Ονομασία Event</label>
+        <input type="text" id="evtName" placeholder="π.χ. Γάμος Παπαδόπουλου">
+      </div>
+      <div class="fg">
+        <label>Τοποθεσία</label>
+        <input type="text" id="evtLocation" placeholder="π.χ. Varkiza Resort">
+      </div>
+    </div>
+
+    <div class="row3">
+      <div class="fg">
+        <label>Ημερομηνία</label>
+        <input type="date" id="evtDate">
+      </div>
+      <div class="fg">
+        <label>Ώρα Έναρξης</label>
+        <input type="time" id="evtStart" oninput="calcEvt()">
+      </div>
+      <div class="fg">
+        <label>Ώρα Λήξης</label>
+        <input type="time" id="evtEnd" oninput="calcEvt()">
+      </div>
+    </div>
+
+    <div class="time-preview" id="evtPreview" style="margin-bottom:12px">
+      <div class="tp-hrs" id="evtPrevHrs">0ω</div>
+      <div class="tp-pay" id="evtPrevPay">ανά υπάλληλο ≈ €0,00</div>
+    </div>
+
+    <div class="fg">
+      <label>Επιλογή Προσωπικού <span style="color:var(--muted);font-size:.7rem">(3–40 άτομα)</span></label>
+      <div class="sp-grid" id="evtStaffPicker" style="max-height:320px;overflow-y:auto">
+        <div class="empty" style="padding:10px"><div class="ei">👤</div>Δεν υπάρχει προσωπικό ακόμα.</div>
+      </div>
+      <div id="evtPickCount" style="font-size:.72rem;color:var(--muted);margin-top:7px;text-align:center"></div>
+    </div>
+
+    <!-- ΠΡΟΣΘΗΚΗ ΠΡΟΣΩΠΙΚΟΥ μέσα στο event -->
+    <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+      <div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">➕ Προσθήκη Νέου Υπαλλήλου</div>
+      <div class="row3">
+        <div>
+          <label style="font-size:.65rem;color:var(--muted);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em">Όνομα</label>
+          <input type="text" id="evtNewName" placeholder="π.χ. Μαρία">
+        </div>
+        <div>
+          <label style="font-size:.65rem;color:var(--muted);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em">Ρόλος</label>
+          <input type="text" id="evtNewRole" placeholder="π.χ. Σερβιτόρος">
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <button class="btn btn-b" style="padding:9px 12px;width:auto;font-size:.78rem" onclick="addStaffFromEvent()">＋ Προσθήκη</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Σημείωση</label>
+      <textarea id="evtNote" placeholder="Επιπλέον πληροφορίες..."></textarea>
+    </div>
+
+    <div id="evtErrMsg" style="display:none;background:rgba(239,68,68,.15);border:1px solid var(--red);border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:.8rem;color:var(--red)"></div>
+    <button class="btn btn-p" onclick="safeCreateEvent()">🎉 Δημιουργία Event</button>
+  </div>
+
+  <!-- ΛΙΣΤΑ EVENTS -->
+  <div id="evtList"></div>
+
+</div><!-- /pg-events -->
+
+<!-- ══ PAGE: ΗΜΕΡΟΛΟΓΙΟ ══ -->
+<div class="page" id="pg-cal">
+
+  <div class="card">
+    <div class="cal-nav">
+      <button onclick="calPrev()">◀</button>
+      <div class="cal-lbl" id="calLabel">—</div>
+      <button onclick="calNext()">▶</button>
+    </div>
+
+    <table id="calTable" style="width:100%;border-collapse:separate;border-spacing:3px;margin-bottom:10px;table-layout:fixed">
+      <thead id="calDOW"></thead>
+      <tbody id="calGrid"></tbody>
+    </table>
+
+    <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:.67rem;color:var(--muted)">
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:4px"></span>Βάρδιες</span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--purple);margin-right:4px"></span>Events</span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:4px"></span>Σήμερα</span>
+    </div>
+  </div>
+
+  <!-- DAY DETAIL -->
+  <div id="dayDetail" style="display:none"></div>
+
+</div>
+
+<div class="toast" id="toast">✓ Καταχωρήθηκε!</div>
+
+<script>
+var RATE   = 1000 / (44 * 4.333);
+
+// Event pay scale: fixed rates per duration
+function eventPay(hours) {
+  if (hours <= 4)      return 40;
+  else if (hours <= 6) return 50;
+  else                 return 60;
+}
+var COLORS = ['#4f8ef7','#22c55e','#a78bfa','#f59e0b','#ef4444','#06b6d4','#f97316','#ec4899','#14b8a6','#f43f5e'];
+var selStaffId   = null;   // for vardies
+var selEvtStaff  = [];     // for events (array of ids)
+var curPage = 'vardies';
+
+// ── STORAGE ──────────────────────────────────────────────
+
+function showSync() {
+  var el = document.getElementById('syncStatus');
+  if (el) { el.style.display='block'; clearTimeout(window._syncTimer); window._syncTimer=setTimeout(function(){el.style.display='none';},2000); }
+}
+
+function getStaff()    { return JSON.parse(localStorage.getItem('pk5_staff') || '[]'); }
+function saveStaff(v)  { localStorage.setItem('pk5_staff', JSON.stringify(v)); }
+function getShifts()   { return JSON.parse(localStorage.getItem('vk_shifts')  || '[]'); }
+function saveShifts(v) { localStorage.setItem('vk_shifts',  JSON.stringify(v)); }
+function getEvents() {
+  var evts = JSON.parse(localStorage.getItem('vk_events') || '[]');
+  // Migrate: recalculate pay for events using correct eventPay() scale
+  var changed = false;
+  for (var i=0; i<evts.length; i++) {
+    var correctPay = eventPay(evts[i].hours);
+    for (var j=0; j<evts[i].staff.length; j++) {
+      if (evts[i].staff[j].pay !== correctPay) {
+        evts[i].staff[j].pay = correctPay;
+        changed = true;
+      }
+    }
+  }
+  if (changed) localStorage.setItem('vk_events', JSON.stringify(evts));
+  return evts;
+}
+function saveEvents(v) { localStorage.setItem('vk_events',  JSON.stringify(v)); }
+
+// ── HELPERS ───────────────────────────────────────────────
+function fmt(n)  { return '€' + n.toFixed(2).replace('.', ','); }
+function fmtH(h) { return h % 1 === 0 ? h + 'ω' : h.toFixed(1) + 'ω'; }
+function inits(n){ return n.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2) || n.slice(0,2).toUpperCase(); }
+function diffHrs(ts, te) {
+  if (!ts || !te) return 0;
+  var sm = parseInt(ts.split(':')[0])*60+parseInt(ts.split(':')[1]);
+  var em = parseInt(te.split(':')[0])*60+parseInt(te.split(':')[1]);
+  var d  = em - sm; if (d <= 0) d += 1440;
+  return Math.round(d / 60 * 10) / 10;
+}
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg || '✓ Καταχωρήθηκε!';
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2000);
+}
+
+// ── MAIN NAV ─────────────────────────────────────────────
+function switchMain(p) {
+  curPage = p;
+  document.getElementById('pg-vardies').className = 'page' + (p==='vardies' ? ' active' : '');
+  document.getElementById('pg-events').className  = 'page' + (p==='events'  ? ' active' : '');
+  document.getElementById('pg-cal').className     = 'page' + (p==='cal'     ? ' active' : '');
+  document.getElementById('mt-vardies').className = 'mtab' + (p==='vardies' ? ' active-v' : '');
+  document.getElementById('mt-events').className  = 'mtab' + (p==='events'  ? ' active-e' : '');
+  document.getElementById('mt-cal').className     = 'mtab' + (p==='cal'     ? ' active-v' : '');
+  if (p === 'events') { renderEvtPicker(); renderEvents(); }
+  if (p === 'cal')    { renderCal(); }
+}
+
+// ── STAFF MANAGEMENT ─────────────────────────────────────
+function addStaff() {
+  var name = document.getElementById('newName').value.trim();
+  var role = document.getElementById('newRole').value.trim();
+  if (!name) { alert('Παρακαλώ εισάγετε όνομα.'); return; }
+  var arr = getStaff();
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i].name.toLowerCase() === name.toLowerCase()) { alert('Υπάρχει ήδη υπάλληλος με αυτό το όνομα.'); return; }
+  }
+  arr.push({ id: String(Date.now()), name: name, role: role, color: COLORS[arr.length % COLORS.length], active: true });
+  saveStaff(arr);
+  document.getElementById('newName').value = '';
+  document.getElementById('newRole').value = '';
+  renderStaffMgmt();
+  renderVPicker();
+  renderEvtPicker();
+}
+
+function removeStaff(id) {
+  if (!confirm('Διαγραφή υπαλλήλου;')) return;
+  saveStaff(getStaff().filter(function(s){ return s.id !== id; }));
+  if (selStaffId === id) selStaffId = null;
+  selEvtStaff = selEvtStaff.filter(function(x){ return x !== id; });
+  renderStaffMgmt(); renderVPicker(); renderEvtPicker();
+}
+
+function renderStaffMgmt() {
+  var el = document.getElementById('staffMgmt');
+  var arr = getStaff();
+  if (!arr.length) { el.innerHTML = '<div class="empty" style="padding:10px"><div class="ei">👤</div>Δεν έχετε προσθέσει υπαλλήλους.</div>'; return; }
+  var h = '';
+  for (var i = 0; i < arr.length; i++) {
+    var s = arr[i];
+    h += '<div class="smgmt-item">'
+       + '<div class="sp-av" style="background:'+s.color+'22;color:'+s.color+'">'+inits(s.name)+'</div>'
+       + '<div style="flex:1"><div style="font-size:.82rem;font-weight:600">'+s.name+'</div><div style="font-size:.65rem;color:var(--muted)">'+(s.role||'—')+'</div></div>'
+       + '<button data-rid="'+s.id+'" onclick="removeStaff(this.getAttribute(\'data-rid\'))" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.76rem;padding:3px 5px">✕</button>'
+       + '</div>';
+  }
+  el.innerHTML = h;
+}
+
+// ── VARDIES PICKER ────────────────────────────────────────
+function renderVPicker() {
+  var el  = document.getElementById('vStaffPicker');
+  var arr = getStaff().filter(function(s){ return s.active !== false; });
+  if (!arr.length) { el.innerHTML = '<div class="empty" style="padding:10px"><div class="ei">👤</div>Προσθέστε υπαλλήλους παρακάτω.</div>'; return; }
+  var h = '';
+  for (var i = 0; i < arr.length; i++) {
+    var s   = arr[i];
+    var sel = selStaffId === s.id;
+    h += '<div class="sp-card'+(sel?' picked':'')+'" data-pid="'+s.id+'" onclick="pickVStaff(this)">'
+       + '<div class="sp-av" style="background:'+s.color+'22;color:'+s.color+'">'+inits(s.name)+'</div>'
+       + '<div><div style="font-size:.82rem;font-weight:600">'+s.name+'</div><div style="font-size:.65rem;color:var(--muted)">'+(s.role||'—')+'</div></div>'
+       + '<div class="sp-ch">✓</div></div>';
+  }
+  el.innerHTML = h;
+}
+
+function pickVStaff(el) {
+  var id = el.getAttribute('data-pid');
+  selStaffId = (selStaffId === id) ? null : id;
+  renderVPicker();
+}
+
+// ── VARDIES TIME CALC ─────────────────────────────────────
+function calcV() {
+  var h = diffHrs(document.getElementById('vStart').value, document.getElementById('vEnd').value);
+  var box = document.getElementById('vPreview');
+  if (!h) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  document.getElementById('vPrevHrs').textContent = fmtH(h);
+  document.getElementById('vPrevPay').textContent = '≈ ' + fmt(h * RATE);
+}
+
+// ── ADD SHIFT ─────────────────────────────────────────────
+function addShift() {
+  if (!selStaffId) { alert('Παρακαλώ επιλέξτε υπάλληλο.'); return; }
+  var date = document.getElementById('vDate').value;
+  var ts   = document.getElementById('vStart').value;
+  var te   = document.getElementById('vEnd').value;
+  var note = document.getElementById('vNote').value.trim();
+  if (!date)    { alert('Παρακαλώ επιλέξτε ημερομηνία.'); return; }
+  if (!ts||!te) { alert('Παρακαλώ συμπληρώστε ώρα έναρξης και λήξης.'); return; }
+  var hours = diffHrs(ts, te);
+  var staff = getStaff();
+  var s = null;
+  for (var i = 0; i < staff.length; i++) { if (staff[i].id === selStaffId) { s = staff[i]; break; } }
+  var shifts = getShifts();
+  shifts.unshift({ id: Date.now(), staffId: selStaffId, name: s.name, shop: 'resort', date: date, timeStart: ts, timeEnd: te, hours: hours, note: note });
+  saveShifts(shifts);
+  document.getElementById('vStart').value = '';
+  document.getElementById('vEnd').value   = '';
+  document.getElementById('vNote').value  = '';
+  document.getElementById('vPreview').style.display = 'none';
+  selStaffId = null;
+  renderVPicker();
+  renderShifts();
+  showToast('✓ Βάρδια καταχωρήθηκε!');
+}
+
+function delShift(id) {
+  if (!confirm('Διαγραφή βάρδιας;')) return;
+  saveShifts(getShifts().filter(function(s){ return s.id !== id; }));
+  renderShifts();
+}
+
+function renderShifts() {
+  var el   = document.getElementById('shiftList');
+  var arr  = getShifts().slice(0, 25);
+  if (!arr.length) { el.innerHTML = '<div class="empty"><div class="ei">📋</div>Δεν υπάρχουν βάρδιες ακόμα.</div>'; return; }
+  var staff = getStaff();
+  var h = '';
+  for (var i = 0; i < arr.length; i++) {
+    var v = arr[i];
+    var color = '#6b7280';
+    for (var j = 0; j < staff.length; j++) { if (staff[j].id === v.staffId) { color = staff[j].color; break; } }
+    var d  = new Date(v.date+'T12:00:00');
+    var ds = d.toLocaleDateString('el-GR',{weekday:'short',day:'2-digit',month:'2-digit'});
+    var pay = v.hours * RATE;
+    h += '<div class="sitem"><div class="sitem-row">'
+       + '<div class="sdot" style="background:var(--accent)"></div>'
+       + '<div class="sinf"><div class="sname">'+v.name+'</div><div class="smeta">'+ds+' · '+v.timeStart+'–'+v.timeEnd+(v.note?' · '+v.note:'')+'</div></div>'
+       + '<div style="text-align:right"><div class="shrs">'+fmtH(v.hours)+'</div><div class="spay">'+fmt(pay)+'</div></div>'
+       + '<button class="sdel" data-did="'+v.id+'" onclick="delShift(this.getAttribute(\'data-did\')*1)">✕</button>'
+       + '</div></div>';
+  }
+  el.innerHTML = h;
+}
+
+// ── EVENTS ────────────────────────────────────────────────
+function calcEvt() {
+  var h = diffHrs(document.getElementById('evtStart').value, document.getElementById('evtEnd').value);
+  var box = document.getElementById('evtPreview');
+  if (!h) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  var pay = eventPay(h);
+  document.getElementById('evtPrevHrs').textContent = fmtH(h);
+  document.getElementById('evtPrevPay').textContent = 'ανά υπάλληλο → ' + fmt(pay) + ' (' + (h<=4?'έως 4ω':h<=6?'έως 6ω':'8ω+') + ')';
+}
+
+function renderEvtPicker() {
+  var el  = document.getElementById('evtStaffPicker');
+  var cnt = document.getElementById('evtPickCount');
+  if (!el) return;
+  var arr = getStaff().filter(function(s){ return s.active !== false; });
+  if (!arr.length) { el.innerHTML = '<div class="empty" style="padding:10px"><div class="ei">👤</div>Δεν υπάρχει προσωπικό ακόμα.</div>'; if(cnt) cnt.textContent=''; return; }
+  var h = '';
+  for (var i = 0; i < arr.length; i++) {
+    var s   = arr[i];
+    var sel = selEvtStaff.indexOf(s.id) >= 0;
+    h += '<div class="sp-card'+(sel?' picked-evt':'')+'" data-eid="'+s.id+'" onclick="toggleEvtStaff(this)">'
+       + '<div class="sp-av" style="background:'+s.color+'22;color:'+s.color+'">'+inits(s.name)+'</div>'
+       + '<div style="flex:1"><div style="font-size:.82rem;font-weight:600">'+s.name+'</div><div style="font-size:.65rem;color:var(--muted)">'+(s.role||'—')+'</div></div>'
+       + '<div class="sp-ch" style="color:var(--purple)">✓</div></div>';
+  }
+  el.innerHTML = h;
+  var n = selEvtStaff.length;
+  if (cnt) {
+    cnt.textContent = n === 0 ? 'Επιλέξτε 3–40 υπαλλήλους' : n + ' υπάλληλοι επιλεγμένοι' + (n < 3 ? ' (ελάχιστο 3)' : '');
+    cnt.style.color = n >= 3 ? 'var(--green)' : 'var(--muted)';
+  }
+}
+
+function toggleEvtStaff(el) {
+  var id = el.getAttribute('data-eid');
+  var idx = selEvtStaff.indexOf(id);
+  if (idx >= 0) {
+    selEvtStaff.splice(idx, 1);
+  } else {
+    if (selEvtStaff.length >= 40) { alert('Μέγιστο 40 υπάλληλοι ανά event.'); return; }
+    selEvtStaff.push(id);
+  }
+  renderEvtPicker();
+}
+
+function addStaffFromEvent() {
+  var name = document.getElementById('evtNewName').value.trim();
+  var role = document.getElementById('evtNewRole').value.trim();
+  if (!name) { alert('Παρακαλώ εισάγετε όνομα υπαλλήλου.'); return; }
+  var arr = getStaff();
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i].name.toLowerCase() === name.toLowerCase()) { alert('Υπάρχει ήδη υπάλληλος με αυτό το όνομα.'); return; }
+  }
+  var newStaff = { id: String(Date.now()), name: name, role: role, color: COLORS[arr.length % COLORS.length], active: true };
+  arr.push(newStaff);
+  saveStaff(arr);
+  // Auto-select the new staff member for this event
+  selEvtStaff.push(newStaff.id);
+  document.getElementById('evtNewName').value = '';
+  document.getElementById('evtNewRole').value = '';
+  renderEvtPicker();
+  renderVPicker();
+  renderStaffMgmt();
+}
+
+function safeCreateEvent() {
+  var errDiv = document.getElementById('evtErrMsg');
+  if (errDiv) errDiv.style.display = 'none';
+  try {
+    createEvent();
+  } catch(e) {
+    if (errDiv) {
+      errDiv.textContent = 'Σφάλμα: ' + e.message;
+      errDiv.style.display = 'block';
+    }
+  }
+}
+
+function createEvent() {
+  var name     = document.getElementById('evtName').value.trim();
+  var evtLoc = document.getElementById('evtLocation').value.trim();
+  var date     = document.getElementById('evtDate').value;
+  var ts       = document.getElementById('evtStart').value;
+  var te       = document.getElementById('evtEnd').value;
+  var note     = document.getElementById('evtNote').value.trim();
+
+  if (!name)              { alert('Παρακαλώ εισάγετε ονομασία event.'); return; }
+  if (!date)              { alert('Παρακαλώ επιλέξτε ημερομηνία.'); return; }
+  if (!ts || !te)         { alert('Παρακαλώ συμπληρώστε ώρα έναρξης και λήξης.'); return; }
+  if (selEvtStaff.length < 3) { alert('Επιλέξτε τουλάχιστον 3 υπαλλήλους.'); return; }
+
+  var hours  = diffHrs(ts, te);
+  var staff  = getStaff();
+  var chosen = [];
+  for (var i = 0; i < selEvtStaff.length; i++) {
+    for (var j = 0; j < staff.length; j++) {
+      if (staff[j].id === selEvtStaff[i]) { chosen.push({ id: staff[j].id, name: staff[j].name, role: staff[j].role, color: staff[j].color, pay: eventPay(hours) }); break; }
+    }
+  }
+
+  var evt = { id: Date.now(), name: name, location: evtLoc, date: date, timeStart: ts, timeEnd: te, hours: hours, staff: chosen, note: note };
+  var events = getEvents();
+  events.unshift(evt);
+  saveEvents(events);
+
+  // Also save as shifts in vk_shifts for the manager view
+  var shifts = getShifts();
+  for (var k = 0; k < chosen.length; k++) {
+    shifts.unshift({ id: Date.now() + k + 1, staffId: chosen[k].id, name: chosen[k].name, shop: 'event', date: date, timeStart: ts, timeEnd: te, hours: hours, note: name + (evtLoc ? ' @ ' + evtLoc : '') });
+  }
+  saveShifts(shifts);
+
+  // Reset form
+  document.getElementById('evtName').value     = '';
+  document.getElementById('evtLocation').value = '';
+  document.getElementById('evtDate').value     = '';
+  document.getElementById('evtStart').value    = '';
+  document.getElementById('evtEnd').value      = '';
+  document.getElementById('evtNote').value     = '';
+  document.getElementById('evtPreview').style.display = 'none';
+  selEvtStaff = [];
+  renderEvtPicker();
+  renderEvents();
+  showToast('🎉 Event δημιουργήθηκε!');
+}
+
+function delEvent(id) {
+  if (!confirm('Διαγραφή event;')) return;
+  saveEvents(getEvents().filter(function(e){ return e.id !== id; }));
+  renderEvents();
+}
+
+function renderEvents() {
+  var el  = document.getElementById('evtList');
+  var arr = getEvents();
+  if (!arr.length) {
+    el.innerHTML = '<div class="card"><div class="empty"><div class="ei">🎉</div>Δεν υπάρχουν events ακόμα.<br>Δημιουργήστε το πρώτο παραπάνω.</div></div>';
+    return;
+  }
+  var h = '';
+  for (var i = 0; i < arr.length; i++) {
+    var e  = arr[i];
+    var d  = new Date(e.date+'T12:00:00');
+    var ds = d.toLocaleDateString('el-GR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+    var total = e.staff.reduce(function(a,s){ return a + s.pay; }, 0);
+    h += '<div class="evt-card">'
+       + '<div class="evt-hdr">'
+       +   '<div style="display:flex;align-items:flex-start;justify-content:space-between">'
+       +     '<div>'
+       +       '<div class="evt-title">🎉 '+e.name+'</div>'
+       +       '<div class="evt-meta">'
+       +         '<span>📅 '+ds+'</span>'
+       +         (e.location ? '<span>📍 '+e.location+'</span>' : '')
+       +         '<span>🕐 '+e.timeStart+'–'+e.timeEnd+'</span>'
+       +         '<span>⏱ '+fmtH(e.hours)+'</span>'
+       +         '<span>👥 '+e.staff.length+' υπάλληλοι</span>'
+       +       '</div>'
+       +     '</div>'
+       +     '<button onclick="delEvent('+e.id+')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.8rem;padding:4px">✕</button>'
+       +   '</div>'
+       + '</div>'
+       + '<div class="evt-body">'
+       +   '<div class="evt-staff-list">';
+    for (var j = 0; j < e.staff.length; j++) {
+      var s = e.staff[j];
+      h += '<div class="evs-row">'
+         + '<div class="evs-av" style="background:'+s.color+'22;color:'+s.color+'">'+inits(s.name)+'</div>'
+         + '<div style="flex:1"><span style="font-weight:600">'+s.name+'</span><span style="font-size:.65rem;color:var(--muted);margin-left:6px">'+(s.role||'')+'</span></div>'
+         + '<div class="evs-pay">'+fmt(s.pay)+'</div>'
+         + '</div>';
+    }
+    h += '</div>'
+       + '<div class="evt-total">'
+       +   '<div class="evt-total-lbl">Σύνολο Μισθοδοσίας Event</div>'
+       +   '<div class="evt-total-val">'+fmt(total)+'</div>'
+       + '</div>'
+       + (e.note ? '<div style="font-size:.72rem;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">📝 '+e.note+'</div>' : '')
+       + '</div></div>';
+  }
+  el.innerHTML = h;
+}
+
+// ── CALENDAR ─────────────────────────────────────────────
+var calNow  = new Date();
+var calM    = calNow.getMonth();
+var calY    = calNow.getFullYear();
+var calSel  = null; // selected date string YYYY-MM-DD
+var CAL_MONTHS = ['Ιανουάριος','Φεβρουάριος','Μάρτιος','Απρίλιος','Μάιος','Ιούνιος','Ιούλιος','Αύγουστος','Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος'];
+var CAL_DAYS   = ['Κυρ','Δευ','Τρί','Τετ','Πέμ','Παρ','Σάβ'];
+
+function calPrev() { calM--; if(calM<0){calM=11;calY--;} renderCal(); }
+function calNext() { calM++; if(calM>11){calM=0;calY++;} renderCal(); }
+
+function renderCal() {
+  document.getElementById('calLabel').textContent = CAL_MONTHS[calM] + ' ' + calY;
+
+  // DOW headers
+  // Use table for reliable 7-column layout on all browsers
+  var dh = document.getElementById('calDOW');
+  dh.innerHTML = '<tr>' + CAL_DAYS.map(function(d){ return '<th style="text-align:center;font-size:.6rem;color:var(--muted);padding:4px 2px;font-weight:600;text-transform:uppercase;letter-spacing:.04em">'+d+'</th>'; }).join('') + '</tr>';
+  var cg = document.getElementById('calGrid');
+
+  var shifts = getShifts();
+  var events = getEvents();
+
+  // Build map: date -> {shifts:[], events:[]}
+  var map = {};
+  for (var i=0; i<shifts.length; i++) {
+    var s = shifts[i]; if (!map[s.date]) map[s.date] = {shifts:[],events:[]};
+    map[s.date].shifts.push(s);
+  }
+  for (var j=0; j<events.length; j++) {
+    var e = events[j]; if (!map[e.date]) map[e.date] = {shifts:[],events:[]};
+    map[e.date].events.push(e);
+  }
+
+  var today = new Date().toISOString().slice(0,10);
+  var firstDay = new Date(calY, calM, 1);
+  var lastDay  = new Date(calY, calM+1, 0);
+  // Start from previous Monday (or Sunday if needed - using Mon start)
+  var startDow = (firstDay.getDay() + 6) % 7; // Monday=0
+  var grid = document.getElementById('calGrid');
+  var h = '';
+  var row = '<tr>';
+  var cellCount = 0;
+
+  for (var d = -startDow; d < lastDay.getDate(); d++) {
+    var cur  = new Date(calY, calM, d+1);
+    var iso  = cur.toISOString().slice(0,10);
+    var day  = cur.getDate();
+    var isCur= cur.getMonth() === calM;
+    var data = map[iso] || {shifts:[],events:[]};
+    var hasSh= data.shifts.filter(function(s){return s.shop==='resort';}).length > 0;
+    var hasEv= data.events.length > 0 || data.shifts.filter(function(s){return s.shop==='event';}).length > 0;
+    var cls  = 'cal-day';
+    if (!isCur) cls += ' other-month';
+    if (iso === today) cls += ' today';
+    if (iso === calSel) cls += ' selected';
+    if (hasSh && hasEv) cls += ' has-both';
+    else if (hasSh) cls += ' has-shifts';
+    else if (hasEv) cls += ' has-events';
+
+    // dots for staff
+    var staffDots = '';
+    var allStaff = getStaff();
+    var shown = {};
+    data.shifts.forEach(function(s) {
+      if (shown[s.staffId||s.name]) return;
+      shown[s.staffId||s.name] = 1;
+      var col = '#6b7280';
+      for (var k=0; k<allStaff.length; k++) { if(allStaff[k].id===s.staffId){col=allStaff[k].color;break;} }
+      staffDots += '<div class="cal-dot" style="background:'+col+'"></div>';
+    });
+    var evDots = data.events.map(function(){ return '<div class="cal-dot" style="background:var(--purple)"></div>'; }).join('');
+
+    var total = (data.shifts.length + data.events.length);
+    var cell = '<td style="padding:2px;vertical-align:top">'
+      + '<div class="'+cls+'" data-date="'+iso+'" onclick="calDayClick(this)">'
+      + '<div class="cal-dn">'+day+'</div>'
+      + '<div class="cal-dots">'+(staffDots+evDots)+'</div>'
+      + (total > 0 ? '<div class="cal-count">'+(data.shifts.length > 0 ? data.shifts.length+' β' : '')+(data.events.length > 0 ? ' '+data.events.length+' ev' : '')+'</div>' : '')
+      + '</div></td>';
+    row += cell;
+    cellCount++;
+    if (cellCount % 7 === 0) { h += row + '</tr><tr>'; row = ''; }
+  }
+  // Fill remaining cells to complete last row
+  var remaining = (7 - (cellCount % 7)) % 7;
+  for (var x = 0; x < remaining; x++) {
+    var nc = new Date(calY, calM+1, x+1);
+    row += '<td style="padding:2px;vertical-align:top"><div class="cal-day other-month"><div class="cal-dn">'+nc.getDate()+'</div></div></td>';
+  }
+  if (row !== '') h += row + '</tr>';
+  cg.innerHTML = h;
+
+  // If day selected, re-render detail
+  if (calSel) renderDayDetail(calSel);
+}
+
+function calDayClick(el) { selectCalDay(el.getAttribute('data-date')); }
+function closeCalDetail() { document.getElementById('dayDetail').style.display='none'; calSel=null; renderCal(); }
+function selectCalDay(date) {
+  calSel = (calSel === date) ? null : date;
+  renderCal();
+  if (calSel) {
+    renderDayDetail(calSel);
+    document.getElementById('dayDetail').style.display = 'block';
+    setTimeout(function(){ document.getElementById('dayDetail').scrollIntoView({behavior:'smooth',block:'nearest'}); }, 100);
+  } else {
+    document.getElementById('dayDetail').style.display = 'none';
+  }
+}
+
+function renderDayDetail(date) {
+  var el     = document.getElementById('dayDetail');
+  var shifts = getShifts().filter(function(s){ return s.date === date; });
+  var events = getEvents().filter(function(e){ return e.date === date; });
+  var staff  = getStaff();
+  var d      = new Date(date+'T12:00:00');
+  var ds     = d.toLocaleDateString('el-GR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+
+  var resortOnly = shifts.filter(function(s){return s.shop==='resort';});
+  var totalHrs = resortOnly.reduce(function(a,s){return a+s.hours;},0);
+  var totalPay = totalHrs * RATE;
+  var evtPay   = events.reduce(function(a,e){return a+e.staff.reduce(function(b,s){return b+s.pay;},0);},0);
+
+  var h = '<div class="day-detail">';
+  h += '<div class="day-detail-hdr"><span>📅 '+ds+'</span><button onclick="closeCalDetail()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem">✕</button></div>';
+
+  // Summary row
+  if (shifts.length || events.length) {
+    h += '<div class="day-summary">'
+       + '<div class="ds-card"><div class="ds-val" style="color:var(--yellow)">'+fmtH(totalHrs)+'</div><div class="ds-lbl">Σύνολο Ωρών</div></div>'
+       + '<div class="ds-card"><div class="ds-val" style="color:var(--green)">'+fmt(totalPay)+'</div><div class="ds-lbl">Αμοιβές Resort</div></div>'
+       + '<div class="ds-card"><div class="ds-val" style="color:var(--purple)">'+fmt(evtPay)+'</div><div class="ds-lbl">Αμοιβές Events</div></div>'
+       + '</div>';
+  }
+
+  // Shifts (Resort)
+  var resortShifts = shifts.filter(function(s){return s.shop==='resort';});
+  if (resortShifts.length) {
+    h += '<div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px">🏖️ Βάρδιες Resort</div>';
+    for (var i=0; i<resortShifts.length; i++) {
+      var s = resortShifts[i];
+      var col = '#6b7280';
+      for (var k=0; k<staff.length; k++) { if(staff[k].id===s.staffId){col=staff[k].color;break;} }
+      h += '<div class="day-entry">'
+         + '<div class="de-av" style="background:'+col+'22;color:'+col+'">'+inits(s.name)+'</div>'
+         + '<div class="de-info"><div class="de-name">'+s.name+'</div><div class="de-meta">'+(s.timeStart&&s.timeEnd?s.timeStart+'–'+s.timeEnd:'')+(s.note?' · '+s.note:'')+'</div></div>'
+         + '<div><div class="de-hrs">'+fmtH(s.hours)+'</div><div class="de-pay">'+fmt(s.hours*RATE)+'</div></div>'
+         + '</div>';
+    }
+  }
+
+  // Event shifts
+  var evtShifts = shifts.filter(function(s){return s.shop==='event';});
+  if (evtShifts.length || events.length) {
+    h += '<div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;margin-top:'+(resortShifts.length?'12px':'0')+'">🎉 Events</div>';
+  }
+
+  // Full events
+  for (var j=0; j<events.length; j++) {
+    var ev = events[j];
+    h += '<div style="background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.25);border-radius:9px;padding:11px 13px;margin-bottom:6px">'
+       + '<div style="font-family:Space Grotesk,sans-serif;font-weight:700;font-size:.88rem;margin-bottom:5px">'+ev.name+(ev.location?' <span style="font-size:.7rem;color:var(--muted);font-weight:400">@ '+ev.location+'</span>':'')+'</div>'
+       + '<div style="font-size:.7rem;color:var(--muted);margin-bottom:8px">'+ev.timeStart+'–'+ev.timeEnd+' · '+fmtH(ev.hours)+' · '+ev.staff.length+' υπάλληλοι</div>'
+       + ev.staff.map(function(s){
+           return '<div class="day-entry" style="margin-bottom:4px">'
+                + '<div class="de-av" style="background:'+s.color+'22;color:'+s.color+'">'+inits(s.name)+'</div>'
+                + '<div class="de-info"><div class="de-name">'+s.name+'</div><div class="de-meta">'+(s.role||'')+'</div></div>'
+                + '<div><div class="de-hrs" style="color:var(--purple)">'+fmtH(ev.hours)+'</div><div class="de-pay">'+fmt(s.pay)+'</div></div>'
+                + '</div>';
+         }).join('')
+       + '</div>';
+  }
+
+  if (!shifts.length && !events.length) {
+    h += '<div class="empty" style="padding:20px"><div class="ei">📭</div>Δεν υπάρχουν βάρδιες ή events αυτή την ημέρα.</div>';
+  }
+
+  h += '</div>';
+  el.innerHTML = h;
+}
+
+// ── BOOT ─────────────────────────────────────────────────
+document.getElementById('vDate').value   = new Date().toISOString().slice(0,10);
+document.getElementById('evtDate').value = new Date().toISOString().slice(0,10);
+renderStaffMgmt();
+renderVPicker();
+renderShifts();
+</script>
+</body>
+</html>
