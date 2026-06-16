@@ -1372,7 +1372,7 @@ renderStaffList();
 renderStaffPicker();
 document.getElementById('sumML').textContent = MONTHS[sumM] + ' ' + sumY;
 renderSumTable();
-document.getElementById('vdmDate').value = new Date().toISOString().slice(0,10);
+var _vdmDate = document.getElementById('vdmDate'); if (_vdmDate) _vdmDate.value = new Date().toISOString().slice(0,10);
 </script>
 
 
