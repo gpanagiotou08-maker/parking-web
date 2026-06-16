@@ -146,7 +146,7 @@
 
 
 
-  <!-- Firebase Compat SDK -->
+<!-- Firebase Compat SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script>
@@ -158,80 +158,123 @@
       messagingSenderId: "399132378403",
       appId: "1:399132378403:web:947ef0e51d3e44b7b1f896"
     };
-    firebase.initializeApp(firebaseConfig);
-    var db = firebase.firestore();
 
-    var _origSet = localStorage.setItem.bind(localStorage);
+    firebase.initializeApp(firebaseConfig);
+    window._db = firebase.firestore();
+    window._fbReady = false;
+    window._fbSyncing = false;
     var SYNC_KEYS = ['pk5_staff','pk5_tx','pk5_sal','vk_shifts','vk_events'];
-    var _syncing = false;
 
     function fbSave(key, value) {
-      db.collection('parking_data').doc(key).set({ data: value, updated: Date.now() })
-        .then(function(){ showSyncDot(true); })
-        .catch(function(e){ console.warn('FB save error:', e); });
+      if (!window._db) return;
+      window._db.collection('parking_data').doc(key)
+        .set({ data: value, updated: Date.now() })
+        .then(function(){ fbShowDot('saved'); })
+        .catch(function(e){ console.error('FB save error:', e); });
     }
 
-    localStorage.setItem = function(key, value) {
-      _origSet(key, value);
-      if (!_syncing && SYNC_KEYS.indexOf(key) >= 0) { fbSave(key, value); }
-    };
-
-    function syncFromFirebase(cb) {
-      _syncing = true;
-      db.collection('parking_data').get().then(function(snap) {
-        snap.forEach(function(doc) {
-          if (SYNC_KEYS.indexOf(doc.id) >= 0 && doc.data().data) {
-            _origSet(doc.id, doc.data().data);
-          }
-        });
-        _syncing = false;
-        if (cb) cb();
-      }).catch(function(){ _syncing = false; if (cb) cb(); });
-    }
-
-    function reRenderAll() {
-      if (typeof renderAll === 'function') renderAll();
-      if (typeof renderStaffList === 'function') renderStaffList();
-      if (typeof renderStaffPicker === 'function') renderStaffPicker();
-      if (typeof renderSumTable === 'function') renderSumTable();
-      if (typeof renderShifts === 'function') renderShifts();
-      if (typeof renderVPicker === 'function') renderVPicker();
-      if (typeof renderStaffMgmt === 'function') renderStaffMgmt();
-      if (typeof renderEvents === 'function') renderEvents();
-      if (typeof vdRender === 'function') vdRender();
-    }
-
-    // Real-time listener
-    db.collection('parking_data').onSnapshot(function(snap) {
-      if (_syncing) return;
-      _syncing = true;
-      snap.forEach(function(doc) {
-        if (SYNC_KEYS.indexOf(doc.id) >= 0 && doc.data().data) {
-          _origSet(doc.id, doc.data().data);
-        }
-      });
-      _syncing = false;
-      showSyncDot(false);
-      setTimeout(reRenderAll, 200);
-    });
-
-    function showSyncDot(saving) {
+    function fbShowDot(state) {
       var el = document.getElementById('fbSyncDot');
       if (!el) return;
-      el.textContent = saving ? '☁️ Αποθήκευση...' : '✅ Συγχρονισμένο';
-      el.style.background = saving ? 'rgba(245,158,11,.15)' : 'rgba(34,197,94,.15)';
-      el.style.color = saving ? '#f59e0b' : '#22c55e';
+      if (state === 'saving') {
+        el.textContent = '☁️ Αποθήκευση...';
+        el.style.background = 'rgba(245,158,11,.15)';
+        el.style.borderColor = 'rgba(245,158,11,.3)';
+        el.style.color = '#f59e0b';
+      } else if (state === 'saved') {
+        el.textContent = '✅ Αποθηκεύτηκε';
+        el.style.background = 'rgba(34,197,94,.15)';
+        el.style.borderColor = 'rgba(34,197,94,.3)';
+        el.style.color = '#22c55e';
+      } else {
+        el.textContent = '🔄 Συγχρονισμός...';
+        el.style.background = 'rgba(79,142,247,.15)';
+        el.style.borderColor = 'rgba(79,142,247,.3)';
+        el.style.color = '#4f8ef7';
+      }
       el.style.display = 'block';
-      clearTimeout(window._fbTimer);
-      window._fbTimer = setTimeout(function(){ el.style.display='none'; }, 3000);
+      clearTimeout(window._fbDotTimer);
+      window._fbDotTimer = setTimeout(function(){ el.style.display='none'; }, 3000);
     }
 
+    // Override localStorage.setItem to also save to Firebase
+    var _origSetItem = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function(key, value) {
+      _origSetItem(key, value);
+      if (!window._fbSyncing && SYNC_KEYS.indexOf(key) >= 0) {
+        fbShowDot('saving');
+        fbSave(key, value);
+      }
+    };
+
+    // Load all data from Firebase on startup
+    function syncFromFirebase(callback) {
+      window._fbSyncing = true;
+      fbShowDot('sync');
+      window._db.collection('parking_data').get()
+        .then(function(snapshot) {
+          snapshot.forEach(function(doc) {
+            if (SYNC_KEYS.indexOf(doc.id) >= 0 && doc.data().data) {
+              _origSetItem(doc.id, doc.data().data);
+            }
+          });
+          window._fbSyncing = false;
+          window._fbReady = true;
+          if (callback) callback();
+        })
+        .catch(function(err) {
+          console.error('Firebase sync error:', err);
+          window._fbSyncing = false;
+          if (callback) callback();
+        });
+    }
+
+    // Real-time listener - updates UI when another device makes changes
+    window._db.collection('parking_data').onSnapshot(function(snapshot) {
+      if (window._fbSyncing) return;
+      var changed = false;
+      snapshot.docChanges().forEach(function(change) {
+        if ((change.type === 'modified' || change.type === 'added') && change.doc.data().data) {
+          _origSetItem(change.doc.id, change.doc.data().data);
+          changed = true;
+        }
+      });
+      if (changed && window._fbReady) {
+        fbShowDot('sync');
+        setTimeout(function() {
+          if (typeof renderAll === 'function') renderAll();
+          if (typeof renderStaffList === 'function') renderStaffList();
+          if (typeof renderStaffPicker === 'function') renderStaffPicker();
+          if (typeof renderSumTable === 'function') renderSumTable();
+          if (typeof renderShifts === 'function') renderShifts();
+          if (typeof renderVPicker === 'function') renderVPicker();
+          if (typeof renderStaffMgmt === 'function') renderStaffMgmt();
+          if (typeof renderEvents === 'function') renderEvents();
+          if (typeof vdRender === 'function') vdRender();
+          fbShowDot('saved');
+        }, 300);
+      }
+    }, function(err) { console.error('Snapshot error:', err); });
+
+    // Sync on page load
     window.addEventListener('load', function() {
-      showSyncDot(false);
-      syncFromFirebase(function() { setTimeout(reRenderAll, 100); });
+      syncFromFirebase(function() {
+        // Re-render everything after loading from cloud
+        setTimeout(function() {
+          if (typeof renderAll === 'function') renderAll();
+          if (typeof renderStaffList === 'function') renderStaffList();
+          if (typeof renderStaffPicker === 'function') renderStaffPicker();
+          if (typeof renderSumTable === 'function') renderSumTable();
+          if (typeof renderShifts === 'function') renderShifts();
+          if (typeof renderVPicker === 'function') renderVPicker();
+          if (typeof renderStaffMgmt === 'function') renderStaffMgmt();
+          if (typeof renderEvents === 'function') renderEvents();
+          if (typeof vdRender === 'function') vdRender();
+        }, 200);
+      });
     });
   </script>
-  <div id="fbSyncDot" style="position:fixed;bottom:14px;right:14px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:5px 12px;font-size:.72rem;color:#22c55e;font-family:Inter,sans-serif;z-index:9999;display:none;pointer-events:none">✅ Συγχρονισμένο</div>
+  <div id="fbSyncDot" style="position:fixed;bottom:14px;right:14px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:5px 13px;font-size:.72rem;color:#22c55e;font-family:Inter,sans-serif;z-index:9999;display:none;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.3)">✅ Αποθηκεύτηκε</div>
 
 </head>
 <body>
