@@ -1243,6 +1243,25 @@ function vdClearAll() {
 }
 
 function vdRender() {
+  // Always reload fresh from Firebase before rendering
+  if (window._db) {
+    window._fbSyncing = true;
+    window._db.collection('parking_data').get().then(function(snapshot) {
+      snapshot.forEach(function(doc) {
+        if (['vk_shifts','vk_events','pk5_staff'].indexOf(doc.id) >= 0 && doc.data().data) {
+          var _orig = localStorage.setItem.bind(localStorage);
+          _orig(doc.id, doc.data().data);
+        }
+      });
+      window._fbSyncing = false;
+      _vdRenderActual();
+    }).catch(function(){ window._fbSyncing = false; _vdRenderActual(); });
+    return;
+  }
+  _vdRenderActual();
+}
+
+function _vdRenderActual() {
   var shifts = vdShifts();
   document.getElementById('vdMonthLabel').textContent = VD_MONTHS[vdM]+' '+vdY;
 
@@ -1363,13 +1382,42 @@ function switchMainTab(t) {
   document.getElementById('main-vardies').style.display = t==='vardies' ? 'block' : 'none';
   document.getElementById('mnav-tamio').className   = 'mnav-btn' + (t==='tamio'   ? ' active' : '');
   document.getElementById('mnav-vardies').className = 'mnav-btn' + (t==='vardies' ? ' active' : '');
-  if (t==='vardies') { vdRender(); }
+  if (t==='vardies') {
+    // Force fresh load from Firebase
+    if (window._db) {
+      window._db.collection('parking_data').get().then(function(snap) {
+        snap.forEach(function(d) {
+          if (d.data().data) localStorage.setItem(d.id, d.data().data);
+        });
+        vdRender();
+        renderSumTable();
+      }).catch(function(){ vdRender(); });
+    } else {
+      vdRender();
+    }
+  }
 }
 
 // ── BOOT ──────────────────────────────────────────────────
-renderAll();
-renderStaffList();
-renderStaffPicker();
+// Wait for Firebase to load before first render
+function bootApp() {
+  renderAll();
+  renderStaffList();
+  renderStaffPicker();
+}
+if (window._db) {
+  window._db.collection('parking_data').get().then(function(snap) {
+    snap.forEach(function(d) {
+      if (d.data().data) {
+        var orig = localStorage.setItem.bind(localStorage);
+        orig(d.id, d.data().data);
+      }
+    });
+    bootApp();
+  }).catch(function(){ bootApp(); });
+} else {
+  bootApp();
+}
 document.getElementById('sumML').textContent = MONTHS[sumM] + ' ' + sumY;
 renderSumTable();
 var _vdmDate = document.getElementById('vdmDate'); if (_vdmDate) _vdmDate.value = new Date().toISOString().slice(0,10);
